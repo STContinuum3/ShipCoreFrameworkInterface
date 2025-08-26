@@ -1,0 +1,162 @@
+<Window x:Class="ShipClassInterface.Dialogs.TemplateSelectionDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        mc:Ignorable="d"
+        Title="Select Template" 
+        Height="600" Width="700"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="14"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="Segoe UI">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Choose Template Type" 
+                       FontSize="18" 
+                       FontWeight="Bold" 
+                       HorizontalAlignment="Center"/>
+            <TextBlock Text="Select a template to load as a starting point for your block definition." 
+                       FontSize="12" 
+                       Opacity="0.7" 
+                       HorizontalAlignment="Center" 
+                       Margin="0,5,0,0"
+                       TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <!-- Template Options -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Block Categories Template -->
+                <materialDesign:Card Margin="0,0,0,15" Padding="15" UniformCornerRadius="5">
+                    <RadioButton x:Name="BlockCategoriesRadio" GroupName="TemplateGroup" IsChecked="True">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                <materialDesign:PackIcon Kind="ViewModule" 
+                                                       Width="24" Height="24" 
+                                                       VerticalAlignment="Center" 
+                                                       Margin="0,0,10,0"/>
+                                <TextBlock Text="Block Categories" 
+                                          FontWeight="SemiBold" 
+                                          FontSize="16" 
+                                          VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Define custom categories for organizing blocks in the block picker. Use this template to create new categories or modify existing ones."
+                                      TextWrapping="Wrap"
+                                      Opacity="0.8"
+                                      Margin="34,0,0,0"/>
+                        </StackPanel>
+                    </RadioButton>
+                </materialDesign:Card>
+
+                <!-- Grid Core Template -->
+                <materialDesign:Card Margin="0,0,0,15" Padding="15" UniformCornerRadius="5">
+                    <RadioButton x:Name="GridCoreRadio" GroupName="TemplateGroup">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                <materialDesign:PackIcon Kind="Cube" 
+                                                       Width="24" Height="24" 
+                                                       VerticalAlignment="Center" 
+                                                       Margin="0,0,10,0"/>
+                                <TextBlock Text="Grid Core" 
+                                          FontWeight="SemiBold" 
+                                          FontSize="16" 
+                                          VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Standard cube block definition template. Use this for most regular blocks like structural components, functional blocks, and decorative elements."
+                                      TextWrapping="Wrap"
+                                      Opacity="0.8"
+                                      Margin="34,0,0,0"/>
+                        </StackPanel>
+                    </RadioButton>
+                </materialDesign:Card>
+
+                <!-- Grid Core Update Module Template -->
+                <materialDesign:Card Margin="0,0,0,15" Padding="15" UniformCornerRadius="5">
+                    <RadioButton x:Name="UpgradeModuleRadio" GroupName="TemplateGroup">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                <materialDesign:PackIcon Kind="TuneVertical" 
+                                                       Width="24" Height="24" 
+                                                       VerticalAlignment="Center" 
+                                                       Margin="0,0,10,0"/>
+                                <TextBlock Text="Grid Core Update Module" 
+                                          FontWeight="SemiBold" 
+                                          FontSize="16" 
+                                          VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Upgrade module definition template. Use this for blocks that modify or enhance other blocks' functionality when placed nearby."
+                                      TextWrapping="Wrap"
+                                      Opacity="0.8"
+                                      Margin="34,0,0,0"/>
+                        </StackPanel>
+                    </RadioButton>
+                </materialDesign:Card>
+
+                <!-- Custom Path Option -->
+                <materialDesign:Card Margin="0,0,0,15" Padding="15" UniformCornerRadius="5">
+                    <RadioButton x:Name="CustomPathRadio" GroupName="TemplateGroup">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                <materialDesign:PackIcon Kind="FolderOpen" 
+                                                       Width="24" Height="24" 
+                                                       VerticalAlignment="Center" 
+                                                       Margin="0,0,10,0"/>
+                                <TextBlock Text="Custom Template" 
+                                          FontWeight="SemiBold" 
+                                          FontSize="16" 
+                                          VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Browse for a custom .sbc template file from your system."
+                                      TextWrapping="Wrap"
+                                      Opacity="0.8"
+                                      Margin="34,0,0,5"/>
+                            <DockPanel Margin="34,5,0,0">
+                                <Button DockPanel.Dock="Right" 
+                                       Content="Browse..." 
+                                       Margin="10,0,0,0" 
+                                       Click="BrowseButton_Click"
+                                       IsEnabled="{Binding IsChecked, ElementName=CustomPathRadio}"/>
+                                <TextBox x:Name="CustomPathTextBox" 
+                                        Text="{Binding CustomTemplatePath, UpdateSourceTrigger=PropertyChanged}"
+                                        IsEnabled="{Binding IsChecked, ElementName=CustomPathRadio}"
+                                        materialDesign:HintAssist.Hint="Custom template file path"/>
+                            </DockPanel>
+                        </StackPanel>
+                    </RadioButton>
+                </materialDesign:Card>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2" 
+                   Orientation="Horizontal" 
+                   HorizontalAlignment="Right" 
+                   Margin="0,20,0,0">
+            <Button Content="Cancel" 
+                   Margin="0,0,10,0" 
+                   Padding="20,8" 
+                   Click="Cancel_Click"
+                   Style="{StaticResource MaterialDesignOutlinedButton}"/>
+            <Button Content="Load Template" 
+                   Padding="20,8" 
+                   Click="LoadTemplate_Click"
+                   Style="{StaticResource MaterialDesignRaisedButton}"
+                   IsDefault="True"/>
+        </StackPanel>
+    </Grid>
+</Window>

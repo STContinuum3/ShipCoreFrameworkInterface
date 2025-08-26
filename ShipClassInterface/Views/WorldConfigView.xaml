@@ -1,0 +1,326 @@
+﻿<UserControl x:Class="ShipClassInterface.Views.WorldConfigView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:ShipClassInterface.Views"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d" 
+             d:DesignHeight="800" d:DesignWidth="1400">
+    
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Toolbar -->
+        <materialDesign:Card Grid.Row="0" Padding="8" Margin="0,0,0,16">
+            <ToolBar Style="{StaticResource MaterialDesignToolBar}">
+                <Button Command="{Binding NewConfigurationCommand}"
+                        ToolTip="New Configuration">
+                    <materialDesign:PackIcon Kind="FileDocumentAdd"/>
+                </Button>
+                <Separator/>
+                <Button Command="{Binding DataContext.LoadAnyXmlFileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                        ToolTip="Load any SE XML configuration file - automatically detects file type">
+                    <materialDesign:PackIcon Kind="FileUpload"/>
+                </Button>
+                <Button Command="{Binding SaveConfigurationCommand}"
+                        ToolTip="Save Configuration">
+                    <materialDesign:PackIcon Kind="ContentSave"/>
+                </Button>
+                <Button Command="{Binding SaveAsConfigurationCommand}"
+                        ToolTip="Save As...">
+                    <materialDesign:PackIcon Kind="ContentSaveAll"/>
+                </Button>
+                <Separator/>
+                <TextBlock VerticalAlignment="Center" Margin="8,0">
+                    <Run Text="Current File: "/>
+                    <Run Text="{Binding CurrentFilePath}" FontWeight="Bold"/>
+                </TextBlock>
+            </ToolBar>
+        </materialDesign:Card>
+        
+        <!-- Main Content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Global Settings -->
+                <materialDesign:Card Margin="0,0,0,16" Padding="16">
+                    <Expander Header="Global Settings" IsExpanded="True">
+                        <Grid Margin="24,16" DataContext="{Binding WorldConfig}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="250"/>
+                                <ColumnDefinition Width="300"/>
+                                <ColumnDefinition Width="250"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Debug Mode:" VerticalAlignment="Center"/>
+                            <CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding DebugMode}" Margin="8,4"
+                                      ToolTip="Enable debug mode to show detailed logging and diagnostic information in the game console."/>
+                            
+                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Combat Logging:" VerticalAlignment="Center"/>
+                            <CheckBox Grid.Row="0" Grid.Column="3" IsChecked="{Binding CombatLogging}" Margin="8,4"
+                                      ToolTip="Enable combat logging to track and log combat-related events and ship class changes during battles."/>
+                            
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Log Level:" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding LOG_LEVEL, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"
+                                     materialDesign:HintAssist.Hint="1-5"
+                                     ToolTip="Server-side logging level (1=Critical, 2=Error, 3=Warning, 4=Info, 5=Debug). Higher values show more detailed logs."/>
+                            
+                            <TextBlock Grid.Row="1" Grid.Column="2" Text="Client Output Log Level:" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="1" Grid.Column="3" Text="{Binding CLIENT_OUTPUT_LOG_LEVEL, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"
+                                     materialDesign:HintAssist.Hint="1-5"
+                                     ToolTip="Client-side logging level for messages sent to players (1=Critical, 2=Error, 3=Warning, 4=Info, 5=Debug)."/>
+                            
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Max Speed (m/s):" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding MaxPossibleSpeedMetersPerSecond, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"
+                                     materialDesign:HintAssist.Hint="Default: 300"
+                                     ToolTip="Global maximum speed limit in meters per second. This overrides individual ship class speed limits if they exceed this value."/>
+                            
+                            <TextBlock Grid.Row="2" Grid.Column="2" Text="Include AI Factions:" VerticalAlignment="Center"/>
+                            <CheckBox Grid.Row="2" Grid.Column="3" IsChecked="{Binding IncludeAiFactions}" Margin="8,4"
+                                      ToolTip="When enabled, AI factions (pirates, SPRT, etc.) will also be subject to ship class restrictions and limits."/>
+                        </Grid>
+                    </Expander>
+                </materialDesign:Card>
+                
+                <!-- Ignored Faction Tags -->
+                <materialDesign:Card Margin="0,0,0,16" Padding="16">
+                    <Expander Header="Ignored Faction Tags">
+                        <Grid Margin="24,16">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            
+                            <Button Grid.Row="0" 
+                                    Command="{Binding AddIgnoreFactionTagCommand}"
+                                    HorizontalAlignment="Left"
+                                    Margin="0,0,0,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="Plus" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Add Faction Tag"/>
+                                </StackPanel>
+                            </Button>
+                            
+                            <ListBox Grid.Row="1" 
+                                     ItemsSource="{Binding WorldConfig.IgnoreFactionTags}"
+                                     MaxHeight="200">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Padding="8" Margin="0,2">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <TextBox Grid.Column="0" Text="{Binding ., UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"
+                                                         materialDesign:HintAssist.Hint="Faction Tag"
+                                                         ToolTip="Faction tag to ignore. Factions with these tags will be exempt from ship class restrictions."/>
+                                                
+                                                <Button Grid.Column="1"
+                                                        Command="{Binding DataContext.RemoveIgnoreFactionTagCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Style="{StaticResource MaterialDesignFlatButton}"
+                                                        Padding="4">
+                                                    <materialDesign:PackIcon Kind="Delete" Width="16" Height="16"/>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
+                    </Expander>
+                </materialDesign:Card>
+                
+                <!-- No-Fly Zones -->
+                <materialDesign:Card Padding="16">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <TextBlock Grid.Column="0" Text="No-Fly Zones" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+                            
+                            <Button Grid.Column="1" 
+                                    Command="{Binding AddNoFlyZoneCommand}"
+                                    Margin="0,0,0,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="Plus" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Add No-Fly Zone"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                        
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="350"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <!-- No-Fly Zone List -->
+                            <ListBox Grid.Column="0" 
+                                     ItemsSource="{Binding WorldConfig.NoFlyZones}"
+                                     SelectedItem="{Binding SelectedNoFlyZone}"
+                                     Margin="0,8,8,0">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Padding="8" Margin="0,2">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock FontWeight="Bold">
+                                                        <Run Text="Zone ID: "/>
+                                                        <Run Text="{Binding ID}"/>
+                                                    </TextBlock>
+                                                    <TextBlock Opacity="0.7" FontSize="12">
+                                                        <Run Text="Radius: "/>
+                                                        <Run Text="{Binding Radius}"/>
+                                                        <Run Text=" m"/>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                                
+                                                <Button Grid.Column="1"
+                                                        Command="{Binding DataContext.RemoveNoFlyZoneCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        Style="{StaticResource MaterialDesignFlatButton}"
+                                                        Padding="4">
+                                                    <materialDesign:PackIcon Kind="Delete" Width="16" Height="16"/>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            
+                            <!-- No-Fly Zone Details -->
+                            <materialDesign:Card Grid.Column="1" Margin="8,8,0,0" Padding="16"
+                                                  DataContext="{Binding SelectedNoFlyZone}">
+                                <Grid>
+                                    <Grid.Style>
+                                        <Style TargetType="Grid">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Grid.Style>
+                                    
+                                    <StackPanel>
+                                        <TextBlock Text="Zone Configuration" FontSize="16" FontWeight="Bold" Margin="0,0,0,16"/>
+                                        
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="150"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Zone ID:" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ID, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"
+                                                     ToolTip="Unique identifier for this no-fly zone. Each zone must have a different ID number."/>
+                                            
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Position X:" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Position.X, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"
+                                                     ToolTip="X coordinate of the no-fly zone center in world space (meters from world origin)."/>
+                                            
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Position Y:" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Position.Y, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"
+                                                     ToolTip="Y coordinate of the no-fly zone center in world space (meters from world origin)."/>
+                                            
+                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Position Z:" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Position.Z, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"
+                                                     ToolTip="Z coordinate of the no-fly zone center in world space (meters from world origin)."/>
+                                            
+                                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Radius (m):" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Radius, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"
+                                                     ToolTip="Radius of the no-fly zone in meters. Any grid entering this spherical area will be affected."/>
+                                            
+                                            <TextBlock Grid.Row="5" Grid.Column="0" Text="Force Shut Off:" VerticalAlignment="Center"/>
+                                            <CheckBox Grid.Row="5" Grid.Column="1" IsChecked="{Binding OverideBlockLimitsForceShutOff}" Margin="8,4"
+                                                      ToolTip="When enabled, overrides individual block limit settings and forces all restricted blocks to shut off when in this zone."/>
+                                        </Grid>
+                                        
+                                        <!-- Allowed Cores -->
+                                        <StackPanel Margin="0,16,0,0">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <TextBlock Grid.Column="0" Text="Allowed Core Subtypes" FontWeight="Bold" VerticalAlignment="Center"/>
+                                                <Button Grid.Column="1" 
+                                                        Command="{Binding DataContext.AddAllowedCoreCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        Style="{StaticResource MaterialDesignFlatButton}">
+                                                    <materialDesign:PackIcon Kind="Plus"/>
+                                                </Button>
+                                            </Grid>
+                                            
+                                            <ItemsControl ItemsSource="{Binding AllowedCoresSubtype}" Margin="0,8,0,0">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Margin="0,2">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            
+                                                            <ComboBox Grid.Column="0" 
+                                                                      Text="{Binding .}" 
+                                                                      Margin="0,0,8,0"
+                                                                      materialDesign:HintAssist.Hint="Select Core Subtype"
+                                                                      ToolTip="Select ship cores that are allowed to operate in this no-fly zone. Only grids with these cores will be exempt from restrictions."
+                                                                      IsEditable="True"
+                                                                      ItemsSource="{Binding DataContext.AvailableShipCoreSubtypes, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                                            
+                                                            <Button Grid.Column="1"
+                                                                    Command="{Binding DataContext.RemoveAllowedCoreCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Style="{StaticResource MaterialDesignFlatButton}"
+                                                                    Padding="4">
+                                                                <materialDesign:PackIcon Kind="Delete" Width="16" Height="16"/>
+                                                            </Button>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Grid>
+                            </materialDesign:Card>
+                        </Grid>
+                    </Grid>
+                </materialDesign:Card>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

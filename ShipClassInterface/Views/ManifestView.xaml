@@ -1,0 +1,174 @@
+﻿<UserControl x:Class="ShipClassInterface.Views.ManifestView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:ShipClassInterface.Views"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d" 
+             d:DesignHeight="800" d:DesignWidth="1400">
+    
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Toolbar -->
+        <materialDesign:Card Grid.Row="0" Padding="8" Margin="0,0,0,16">
+            <ToolBar Style="{StaticResource MaterialDesignToolBar}">
+                <Button Command="{Binding NewConfigurationCommand}"
+                        ToolTip="New Manifest Configuration">
+                    <materialDesign:PackIcon Kind="FileDocumentAdd"/>
+                </Button>
+                <Separator/>
+                <Button Command="{Binding DataContext.LoadAnyXmlFileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                        ToolTip="Load any SE XML configuration file - automatically detects file type">
+                    <materialDesign:PackIcon Kind="FileUpload"/>
+                </Button>
+                <Button Command="{Binding SaveConfigurationCommand}"
+                        ToolTip="Save Manifest Configuration">
+                    <materialDesign:PackIcon Kind="ContentSave"/>
+                </Button>
+                <Button Command="{Binding SaveAsConfigurationCommand}"
+                        ToolTip="Save As...">
+                    <materialDesign:PackIcon Kind="ContentSaveAll"/>
+                </Button>
+                <Separator/>
+                <TextBlock VerticalAlignment="Center" Margin="8,0">
+                    <Run Text="Current File: "/>
+                    <Run Text="{Binding CurrentFilePath}" FontWeight="Bold"/>
+                </TextBlock>
+            </ToolBar>
+        </materialDesign:Card>
+        
+        <!-- Main Content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Ship Core Files List -->
+                <materialDesign:Card Margin="0,0,0,16" Padding="16">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <TextBlock Grid.Column="0" Text="Ship Core Files Manifest" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"
+                                       ToolTip="List of ship core XML files that should be loaded together as a configuration set"/>
+                            
+                            <Button Grid.Column="1" 
+                                    Command="{Binding AddShipCoreFileCommand}"
+                                    Margin="8,0"
+                                    ToolTip="Browse and add an existing ship core XML file">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="FileUpload" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Add File"/>
+                                </StackPanel>
+                            </Button>
+                            
+                            <Button Grid.Column="2" 
+                                    Command="{Binding AddShipCoreFileManuallyCommand}"
+                                    Margin="8,0"
+                                    ToolTip="Add a filename manually (you can edit it in the list)">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="Plus" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Add Manually"/>
+                                </StackPanel>
+                            </Button>
+                            
+                            <Button Grid.Column="3" 
+                                    Command="{Binding RemoveShipCoreFileCommand}"
+                                    Margin="8,0,0,0"
+                                    ToolTip="Remove selected ship core file from manifest">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="Delete" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Remove"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                        
+                        <Grid Grid.Row="1" Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="300"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <!-- File List -->
+                            <ListBox Grid.Column="0" 
+                                     ItemsSource="{Binding Manifest.ShipCoreFiles}"
+                                     SelectedItem="{Binding SelectedShipCoreFile}"
+                                     MinHeight="300"
+                                     Margin="0,0,16,0">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Padding="12" Margin="0,4">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <materialDesign:PackIcon Grid.Column="0" 
+                                                                        Kind="FileDocument" 
+                                                                        Width="20" Height="20" 
+                                                                        VerticalAlignment="Center"
+                                                                        Margin="0,0,12,0"
+                                                                        Opacity="0.7"/>
+                                                
+                                                <TextBox Grid.Column="1" 
+                                                         Text="{Binding ., Mode=OneTime}" 
+                                                         VerticalAlignment="Center"
+                                                         FontSize="14"
+                                                         materialDesign:HintAssist.Hint="Ship Core XML filename"
+                                                         ToolTip="Edit the filename directly. Include .xml extension."
+                                                         Tag="{Binding .}"
+                                                         LostFocus="TextBox_LostFocus"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            
+                            <!-- Info Panel -->
+                            <materialDesign:Card Grid.Column="1" Padding="16">
+                                <StackPanel>
+                                    <TextBlock Text="Manifest Information" FontSize="16" FontWeight="Bold" Margin="0,0,0,16"/>
+                                    
+                                    <TextBlock Margin="0,0,0,8">
+                                        <Run Text="Total Files: " FontWeight="Medium"/>
+                                        <Run Text="{Binding Manifest.ShipCoreFiles.Count, Mode=OneWay}" FontWeight="Bold"/>
+                                    </TextBlock>
+                                    
+                                    <TextBlock Margin="0,0,0,16">
+                                        <Run Text="Selected: " FontWeight="Medium"/>
+                                        <Run Text="{Binding SelectedShipCoreFile}" FontWeight="Bold"/>
+                                    </TextBlock>
+                                    
+                                    <Separator Margin="0,0,0,16"/>
+                                    
+                                    <TextBlock Text="About Manifests" FontWeight="Medium" Margin="0,0,0,8"/>
+                                    <TextBlock TextWrapping="Wrap" FontSize="12" Opacity="0.8">
+                                        A manifest file contains a list of ship core XML files that should be loaded together as a configuration set. This is useful for managing multiple ship classes that work together as part of a balanced gameplay experience.
+                                    </TextBlock>
+                                    
+                                    <TextBlock Text="File Format" FontWeight="Medium" Margin="0,16,0,8"/>
+                                    <TextBlock TextWrapping="Wrap" FontSize="12" Opacity="0.8">
+                                        The manifest is saved as ShipCoreConfig_Manifest.xml and contains an ArrayOfString with filenames. Each filename should point to a valid ship core configuration file.
+                                    </TextBlock>
+                                </StackPanel>
+                            </materialDesign:Card>
+                        </Grid>
+                    </Grid>
+                </materialDesign:Card>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

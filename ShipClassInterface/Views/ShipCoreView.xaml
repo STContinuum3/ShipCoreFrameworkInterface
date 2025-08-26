@@ -1,0 +1,569 @@
+﻿<UserControl x:Class="ShipClassInterface.Views.ShipCoreView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:ShipClassInterface.Views"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:models="clr-namespace:ShipClassInterface.Models"
+             xmlns:controls="clr-namespace:ShipClassInterface.Controls"
+             xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+             mc:Ignorable="d" 
+             d:DesignHeight="800" d:DesignWidth="1400">
+    
+    <UserControl.Resources>
+        <CollectionViewSource x:Key="SortedShipCores" Source="{Binding ShipCores}">
+            <CollectionViewSource.SortDescriptions>
+                <componentModel:SortDescription PropertyName="UniqueName" Direction="Ascending"/>
+            </CollectionViewSource.SortDescriptions>
+        </CollectionViewSource>
+    </UserControl.Resources>
+    
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Toolbar -->
+        <materialDesign:Card Grid.Row="0" Padding="8" Margin="0,0,0,16">
+            <ToolBar Style="{StaticResource MaterialDesignToolBar}">
+                <Button Command="{Binding NewConfigurationCommand}"
+                        ToolTip="New Configuration">
+                    <materialDesign:PackIcon Kind="FileDocumentAdd"/>
+                </Button>
+                <Separator/>
+                <Button Command="{Binding DataContext.LoadAnyXmlFileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                        ToolTip="Load any SE XML configuration file - automatically detects file type">
+                    <materialDesign:PackIcon Kind="FileUpload"/>
+                </Button>
+                <Button Command="{Binding SaveConfigurationCommand}"
+                        ToolTip="Save Configuration">
+                    <materialDesign:PackIcon Kind="ContentSave"/>
+                </Button>
+                <Button Command="{Binding SaveAsConfigurationCommand}"
+                        ToolTip="Save As...">
+                    <materialDesign:PackIcon Kind="ContentSaveEdit"/>
+                </Button>
+                <Button Command="{Binding SaveAllConfigurationsCommand}"
+                        ToolTip="Save All Loaded Configurations">
+                    <materialDesign:PackIcon Kind="ContentSaveAll"/>
+                </Button>
+                <Separator/>
+                <Button Command="{Binding ExportToExcelCommand}"
+                        ToolTip="Export All Ship Cores to Excel">
+                    <materialDesign:PackIcon Kind="MicrosoftExcel"/>
+                </Button>
+                <Separator/>
+                <Button Command="{Binding AddShipCoreCommand}"
+                        ToolTip="Add Ship Core">
+                    <materialDesign:PackIcon Kind="Plus"/>
+                </Button>
+                <Button Command="{Binding RemoveShipCoreCommand}"
+                        ToolTip="Remove Ship Core">
+                    <materialDesign:PackIcon Kind="Delete"/>
+                </Button>
+                <Separator/>
+                <TextBlock VerticalAlignment="Center" Margin="8,0">
+                    <Run Text="Current File: "/>
+                    <Run Text="{Binding CurrentFilePath}" FontWeight="Bold"/>
+                </TextBlock>
+            </ToolBar>
+        </materialDesign:Card>
+        
+        <!-- Main Content -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Ship Core List -->
+            <materialDesign:Card Grid.Column="0" Margin="0,0,8,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <materialDesign:ColorZone Mode="PrimaryDark" Padding="8">
+                        <TextBlock Text="Ship Cores" FontSize="16" FontWeight="Bold"/>
+                    </materialDesign:ColorZone>
+                    
+                    <ListBox Grid.Row="1" 
+                             ItemsSource="{Binding Source={StaticResource SortedShipCores}}"
+                             SelectedItem="{Binding SelectedShipCore}"
+                             Margin="8">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Padding="8" Margin="0,2">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding UniqueName}" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding SubtypeId}" Opacity="0.7" FontSize="12"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </materialDesign:Card>
+            
+            <!-- Ship Core Details -->
+            <materialDesign:Card Grid.Column="1" Margin="8,0,0,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid Margin="16" DataContext="{Binding SelectedShipCore}">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        
+                        <StackPanel>
+                            <!-- Basic Settings -->
+                            <Expander Header="Basic Settings" IsExpanded="True" Margin="0,0,0,16">
+                                <Grid Margin="24,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="200"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Subtype ID:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SubtypeId, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"
+                                             materialDesign:HintAssist.Hint="Block Subtype ID"
+                                             ToolTip="The unique identifier for the ship core block in Space Engineers. This should match the SubtypeId in your block definition file."/>
+                                    
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Unique Name:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding UniqueName, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"
+                                             materialDesign:HintAssist.Hint="Display Name"
+                                             ToolTip="A human-readable name for this ship class that will be displayed to players in the game interface."/>
+                                    
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Force Broadcast:" VerticalAlignment="Center"/>
+                                    <CheckBox Grid.Row="2" Grid.Column="1" IsChecked="{Binding ForceBroadCast}" Margin="8,4"
+                                              ToolTip="When enabled, this ship class will automatically broadcast its identification to other players within the specified range."/>
+                                    
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Broadcast Range:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding ForceBroadCastRange, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"
+                                             materialDesign:HintAssist.Hint="Range in meters"
+                                             ToolTip="The distance in meters at which this ship class will broadcast its identification. Only applies when Force Broadcast is enabled."/>
+                                </Grid>
+                            </Expander>
+                            
+                            <!-- Grid Type Compatibility -->
+                            <Expander Header="Grid Type Compatibility" Margin="0,0,0,16">
+                                <StackPanel Margin="24,8">
+                                    <CheckBox Content="Large Grid Static" IsChecked="{Binding LargeGridStatic}" Margin="0,4"
+                                              ToolTip="Allow this ship class to be used on large static grids (stations and large immobile structures)."/>
+                                    <CheckBox Content="Large Grid Mobile" IsChecked="{Binding LargeGridMobile}" Margin="0,4"
+                                              ToolTip="Allow this ship class to be used on large mobile grids (ships and mobile platforms)."/>
+                                </StackPanel>
+                            </Expander>
+                            
+                            <!-- Limits -->
+                            <Expander Header="Limits and Constraints" Margin="0,0,0,16">
+                                <Grid Margin="24,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="200"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Max Blocks:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding MaxBlocks, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"
+                                             materialDesign:HintAssist.Hint="-1 for unlimited"
+                                             ToolTip="Maximum number of blocks allowed on grids using this ship class. Set to -1 for no limit."/>
+                                    
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Max Mass:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding MaxMass, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"
+                                             materialDesign:HintAssist.Hint="-1 for unlimited"
+                                             ToolTip="Maximum mass in kilograms allowed for grids using this ship class. Set to -1 for no limit."/>
+                                    
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Max PCU:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding MaxPCU, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"
+                                             materialDesign:HintAssist.Hint="-1 for unlimited"
+                                             ToolTip="Maximum PCU (Performance Cost Units) allowed for grids using this ship class. Set to -1 for no limit."/>
+                                    
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Max Per Faction:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding MaxPerFaction, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"
+                                             materialDesign:HintAssist.Hint="-1 for unlimited"
+                                             ToolTip="Maximum number of grids of this ship class that each faction can have. Set to -1 for no limit."/>
+                                    
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Max Per Player:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding MaxPerPlayer, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"
+                                             materialDesign:HintAssist.Hint="-1 for unlimited"
+                                             ToolTip="Maximum number of grids of this ship class that each player can have. Set to -1 for no limit."/>
+                                    
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Min Blocks:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding MinBlocks, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"
+                                             materialDesign:HintAssist.Hint="-1 for no minimum"
+                                             ToolTip="Minimum number of blocks required for grids to use this ship class. Set to -1 for no minimum."/>
+                                    
+                                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Min Players:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding MinPlayers, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"
+                                             materialDesign:HintAssist.Hint="-1 for no minimum"
+                                             ToolTip="Minimum number of players required in the faction to use this ship class. Set to -1 for no minimum."/>
+                                </Grid>
+                            </Expander>
+                            
+                            <!-- Performance Modifiers -->
+                            <Expander Header="Performance Modifiers" Margin="0,0,0,16">
+                                <Grid Margin="24,8" DataContext="{Binding Modifiers}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="200"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="200"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Assembler Speed:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding AssemblerSpeed, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                             ToolTip="Multiplier for assembler production speed. 1.0 = normal speed, 2.0 = double speed, 0.5 = half speed.">
+                                    </TextBox>
+                                    
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Drill Harvest:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding DrillHarvestMultiplier, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                             ToolTip="Multiplier for drill harvest yields. Higher values mean more ore/stone collected per drill operation.">
+                                    </TextBox>
+                                    
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Gyro Efficiency:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding GyroEfficiency, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                             ToolTip="Multiplier for gyroscope power efficiency. Higher values reduce power consumption for rotation.">
+                                    </TextBox>
+                                    
+                                    <TextBlock Grid.Row="1" Grid.Column="2" Text="Gyro Force:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="1" Grid.Column="3" Text="{Binding GyroForce, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                             ToolTip="Multiplier for gyroscope rotational force. Higher values allow faster turning and better maneuverability.">
+                                    </TextBox>
+                                    
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Power Output:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding PowerProducersOutput, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                             ToolTip="Multiplier for power generation from reactors, solar panels, and other power sources.">
+                                    </TextBox>
+                                    
+                                    <TextBlock Grid.Row="2" Grid.Column="2" Text="Refine Efficiency:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="2" Grid.Column="3" Text="{Binding RefineEfficiency, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                             ToolTip="Multiplier for refinery efficiency. Higher values produce more refined materials from ore.">
+                                    </TextBox>
+                                    
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Refine Speed:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding RefineSpeed, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                             ToolTip="Multiplier for refinery processing speed. Higher values refine ore faster.">
+                                    </TextBox>
+                                    
+                                    <TextBlock Grid.Row="3" Grid.Column="2" Text="Thruster Efficiency:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="3" Grid.Column="3" Text="{Binding ThrusterEfficiency, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                             ToolTip="Multiplier for thruster fuel efficiency. Higher values reduce hydrogen/power consumption.">
+                                    </TextBox>
+                                    
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Thruster Force:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding ThrusterForce, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                             ToolTip="Multiplier for thruster force output. Higher values provide more acceleration and lift.">
+                                    </TextBox>
+                                    
+                                    <TextBlock Grid.Row="4" Grid.Column="2" Text="Max Speed:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="4" Grid.Column="3" Text="{Binding MaxSpeed, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                             ToolTip="Maximum speed multiplier for grids using this ship class. 1.0 = 100% max speed, 0.5 = 50% max speed. Maximum value: 1.0">
+                                    </TextBox>
+                                    
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Max Boost:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding MaxBoost, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                             ToolTip="Maximum boost speed multiplier. When boost is active, speed limit is multiplied by this value.">
+                                    </TextBox>
+                                    
+                                    <TextBlock Grid.Row="5" Grid.Column="2" Text="Boost Duration (s):" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="5" Grid.Column="3" Text="{Binding BoostDuration, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                             ToolTip="Duration in seconds that speed boost remains active when triggered.">
+                                    </TextBox>
+                                    
+                                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Boost Cooldown (s):" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding BoostCoolDown, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                             ToolTip="Cooldown period in seconds before speed boost can be used again after it ends.">
+                                    </TextBox>
+                                </Grid>
+                            </Expander>
+                            
+                            <!-- Passive Defense Modifiers -->
+                            <Expander Header="Passive Defense Modifiers" Margin="0,0,0,16">
+                                <Grid Margin="24,8" DataContext="{Binding PassiveDefenseModifiers}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="200"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="200"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Bullet Resistance:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Bullet, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                             ToolTip="Damage resistance multiplier against bullet weapons. Values less than 1.0 reduce damage taken."/>
+                                    
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Energy Resistance:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding Energy, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                             ToolTip="Damage resistance multiplier against energy weapons. Values less than 1.0 reduce damage taken."/>
+                                    
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Kinetic Resistance:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Kinetic, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                             ToolTip="Damage resistance multiplier against kinetic impacts. Values less than 1.0 reduce damage taken."/>
+                                    
+                                    <TextBlock Grid.Row="1" Grid.Column="2" Text="Rocket Resistance:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="1" Grid.Column="3" Text="{Binding Rocket, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                             ToolTip="Damage resistance multiplier against rocket weapons. Values less than 1.0 reduce damage taken."/>
+                                    
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Explosion Resistance:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Explosion, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                             ToolTip="Damage resistance multiplier against explosions. Values less than 1.0 reduce damage taken."/>
+                                    
+                                    <TextBlock Grid.Row="2" Grid.Column="2" Text="Environment Resistance:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="2" Grid.Column="3" Text="{Binding Environment, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                             ToolTip="Damage resistance multiplier against environmental hazards. Values less than 1.0 reduce damage taken."/>
+                                    
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Duration (s):" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Duration, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                             ToolTip="Duration in seconds that passive defense modifiers remain active."/>
+                                    
+                                    <TextBlock Grid.Row="3" Grid.Column="2" Text="Cooldown (s):" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="3" Grid.Column="3" Text="{Binding Cooldown, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                             ToolTip="Cooldown period in seconds before passive defense modifiers can be activated again."/>
+                                </Grid>
+                            </Expander>
+                            
+                            <!-- Active Defense Modifiers -->
+                            <Expander Header="Active Defense Modifiers" Margin="0,0,0,16">
+                                <StackPanel>
+                                    <CheckBox Content="Enable Active Defense Modifiers" 
+                                              IsChecked="{Binding EnableActiveDefenseModifiers}" 
+                                              Margin="24,8,24,8"
+                                              ToolTip="Enable active defense modifiers that can be triggered by player action."/>
+                                    
+                                    <Grid Margin="24,8" DataContext="{Binding ActiveDefenseModifiers}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="200"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="200"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Bullet Resistance:" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Bullet, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                                 ToolTip="Active damage resistance multiplier against bullet weapons. Values less than 1.0 reduce damage taken."/>
+                                        
+                                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Energy Resistance:" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding Energy, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                                 ToolTip="Active damage resistance multiplier against energy weapons. Values less than 1.0 reduce damage taken."/>
+                                        
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Kinetic Resistance:" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Kinetic, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                                 ToolTip="Active damage resistance multiplier against kinetic impacts. Values less than 1.0 reduce damage taken."/>
+                                        
+                                        <TextBlock Grid.Row="1" Grid.Column="2" Text="Rocket Resistance:" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="1" Grid.Column="3" Text="{Binding Rocket, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                                 ToolTip="Active damage resistance multiplier against rocket weapons. Values less than 1.0 reduce damage taken."/>
+                                        
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Explosion Resistance:" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Explosion, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                                 ToolTip="Active damage resistance multiplier against explosions. Values less than 1.0 reduce damage taken."/>
+                                        
+                                        <TextBlock Grid.Row="2" Grid.Column="2" Text="Environment Resistance:" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="2" Grid.Column="3" Text="{Binding Environment, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                                 ToolTip="Active damage resistance multiplier against environmental hazards. Values less than 1.0 reduce damage taken."/>
+                                        
+                                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Duration (s):" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Duration, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                                 ToolTip="Duration in seconds that active defense modifiers remain active when triggered."/>
+                                        
+                                        <TextBlock Grid.Row="3" Grid.Column="2" Text="Cooldown (s):" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Row="3" Grid.Column="3" Text="{Binding Cooldown, UpdateSourceTrigger=LostFocus}" Margin="8,4"
+                                                 ToolTip="Cooldown period in seconds before active defense modifiers can be triggered again."/>
+                                    </Grid>
+                                </StackPanel>
+                            </Expander>
+                            
+                            <!-- Speed and Reload Settings -->
+                            <Expander Header="Speed Boost and Reload Settings" Margin="0,0,0,16">
+                                <StackPanel Margin="24,8">
+                                    <CheckBox Content="Enable Speed Boost" 
+                                              IsChecked="{Binding SpeedBoostEnabled}" 
+                                              Margin="0,4"
+                                              ToolTip="Enable speed boost functionality for this ship class. When enabled, ships can temporarily exceed their normal speed limits."/>
+                                    
+                                    <CheckBox Content="Enable Reload Modifier" 
+                                              IsChecked="{Binding EnableReloadModifier}" 
+                                              Margin="0,8,0,4"
+                                              ToolTip="Enable weapon reload speed modification for this ship class."/>
+                                    
+                                    <Grid Margin="0,8,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="200"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <TextBlock Grid.Column="0" Text="Reload Modifier:" VerticalAlignment="Center"/>
+                                        <TextBox Grid.Column="1" 
+                                                 Text="{Binding ReloadModifier, UpdateSourceTrigger=LostFocus}" 
+                                                 Margin="8,4"
+                                                 HorizontalAlignment="Left"
+                                                 Width="200"
+                                                 ToolTip="Weapon reload speed multiplier. 1.0 = normal speed, 2.0 = double speed, 0.5 = half speed. Only applies when Enable Reload Modifier is checked."/>
+                                    </Grid>
+                                </StackPanel>
+                            </Expander>
+                            
+                            <!-- Block Limits -->
+                            <Expander Header="Block Limits" Margin="0,0,0,16">
+                                <Grid Margin="24,8">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                                        <Button Command="{Binding DataContext.AddBlockLimitCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                HorizontalAlignment="Left"
+                                                Margin="0,0,8,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <materialDesign:PackIcon Kind="Plus" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                <TextBlock Text="Add Block Limit"/>
+                                            </StackPanel>
+                                        </Button>
+                                        
+                                        <Button Command="{Binding DataContext.ImportBlockLimitsCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                HorizontalAlignment="Left"
+                                                ToolTip="Import block limits from another ship core configuration file">
+                                            <StackPanel Orientation="Horizontal">
+                                                <materialDesign:PackIcon Kind="FileImport" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                <TextBlock Text="Import Block Limits"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                    
+                                    <DataGrid Grid.Row="1" 
+                                              ItemsSource="{Binding BlockLimits}"
+                                              AutoGenerateColumns="False"
+                                              CanUserAddRows="False"
+                                              MaxHeight="500">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="250">
+                                                <DataGridTextColumn.ElementStyle>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="ToolTip" Value="A descriptive name for this block limitation rule."/>
+                                                    </Style>
+                                                </DataGridTextColumn.ElementStyle>
+                                            </DataGridTextColumn>
+                                            <DataGridTemplateColumn Header="Block Groups" Width="250">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding BlockGroups}" />
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                                <DataGridTemplateColumn.CellEditingTemplate>
+                                                    <DataTemplate>
+                                                        <ComboBox Text="{Binding BlockGroups, UpdateSourceTrigger=PropertyChanged}"
+                                                                  ItemsSource="{Binding DataContext.AvailableBlockGroups, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                  IsEditable="True"
+                                                                  ToolTip="Select or enter the name of the block group to apply this limit to. Block groups are defined in your Block Groups configuration."/>
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellEditingTemplate>
+                                            </DataGridTemplateColumn>
+                                            <DataGridTextColumn Header="Max Count" Binding="{Binding MaxCount}" Width="100">
+                                                <DataGridTextColumn.ElementStyle>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="ToolTip" Value="Maximum number of blocks from this group allowed on the grid."/>
+                                                    </Style>
+                                                </DataGridTextColumn.ElementStyle>
+                                            </DataGridTextColumn>
+                                            <DataGridCheckBoxColumn Header="No-Fly Zone" Binding="{Binding TurnedOffByNoFlyZone}" Width="110">
+                                                <DataGridCheckBoxColumn.ElementStyle>
+                                                    <Style TargetType="CheckBox">
+                                                        <Setter Property="ToolTip" Value="When enabled, blocks from this group will be automatically turned off when the grid enters a no-fly zone."/>
+                                                    </Style>
+                                                </DataGridCheckBoxColumn.ElementStyle>
+                                            </DataGridCheckBoxColumn>
+                                            <DataGridComboBoxColumn Header="Punishment" 
+                                                                    SelectedItemBinding="{Binding PunishmentType}" 
+                                                                    Width="120">
+                                                <DataGridComboBoxColumn.ElementStyle>
+                                                    <Style TargetType="ComboBox">
+                                                        <Setter Property="ToolTip" Value="Action to take when the block limit is exceeded: ShutOff (disable blocks), Damage (cause damage), Delete (remove blocks), or Explode (destroy blocks with explosion)."/>
+                                                    </Style>
+                                                </DataGridComboBoxColumn.ElementStyle>
+                                                <DataGridComboBoxColumn.ItemsSource>
+                                                    <x:Array Type="{x:Type models:PunishmentType}">
+                                                        <models:PunishmentType>ShutOff</models:PunishmentType>
+                                                        <models:PunishmentType>Damage</models:PunishmentType>
+                                                        <models:PunishmentType>Delete</models:PunishmentType>
+                                                        <models:PunishmentType>Explode</models:PunishmentType>
+                                                    </x:Array>
+                                                </DataGridComboBoxColumn.ItemsSource>
+                                            </DataGridComboBoxColumn>
+                                            <DataGridTemplateColumn Header="Allowed Directions" Width="400">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <controls:DirectionSelector DataContext="{Binding}"/>
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                                <DataGridTemplateColumn.CellEditingTemplate>
+                                                    <DataTemplate>
+                                                        <controls:DirectionSelector DataContext="{Binding}"/>
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellEditingTemplate>
+                                            </DataGridTemplateColumn>
+                                            <DataGridTemplateColumn Header="Actions" Width="100">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <Button Command="{Binding DataContext.RemoveBlockLimitCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                CommandParameter="{Binding}"
+                                                                Style="{StaticResource MaterialDesignFlatButton}"
+                                                                Padding="4">
+                                                            <materialDesign:PackIcon Kind="Delete" Width="16" Height="16"/>
+                                                        </Button>
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </Grid>
+                            </Expander>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+            </materialDesign:Card>
+        </Grid>
+    </Grid>
+</UserControl>

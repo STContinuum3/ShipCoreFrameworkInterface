@@ -1,0 +1,165 @@
+<UserControl x:Class="ShipClassInterface.Views.BlockCategoryCreatorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:ShipClassInterface.Views"
+             xmlns:vm="clr-namespace:ShipClassInterface.ViewModels"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d" 
+             d:DesignHeight="800" d:DesignWidth="1200">
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Margin="10" Background="{StaticResource MaterialDesignCardBackground}" Padding="15">
+            <StackPanel>
+                <TextBlock Text="Block Category Creator" FontSize="18" FontWeight="Bold"/>
+                <TextBlock Text="Create and edit block categories for organizing blocks in the G menu. Categories help players find blocks more easily." 
+                          FontSize="12" Opacity="0.7" TextWrapping="Wrap" Margin="0,5,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Main Content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Grid Margin="20" DataContext="{Binding SelectedBlock}">
+                <StackPanel>
+                    <!-- Category Information -->
+                    <Expander IsExpanded="True">
+                        <Expander.Header>
+                            <TextBlock Text="Category Information" FontWeight="SemiBold"/>
+                        </Expander.Header>
+                        <Grid Margin="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Label Grid.Row="0" Grid.Column="0" Content="Type ID:" 
+                                   ToolTip="Always 'GuiBlockCategoryDefinition' for block categories."/>
+                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Id.TypeId, UpdateSourceTrigger=PropertyChanged}" 
+                                     Margin="0,2" IsReadOnly="True"
+                                     ToolTip="Always 'GuiBlockCategoryDefinition' for block categories."/>
+
+                            <Label Grid.Row="1" Grid.Column="0" Content="Subtype ID:" 
+                                   ToolTip="Unique identifier for this category. Leave empty for the default category or provide a unique name."/>
+                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Id.SubtypeId, UpdateSourceTrigger=PropertyChanged}" 
+                                     Margin="0,2"
+                                     ToolTip="Unique identifier for this category. Leave empty for the default category or provide a unique name."/>
+
+                            <Label Grid.Row="2" Grid.Column="0" Content="Display Name:" 
+                                   ToolTip="The name shown in the block category tabs in the G menu."/>
+                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" 
+                                     Margin="0,2"
+                                     ToolTip="The name shown in the block category tabs in the G menu."/>
+
+                            <Label Grid.Row="3" Grid.Column="0" Content="Search Blocks:" 
+                                   ToolTip="Enable search functionality within this category. Usually set to true."/>
+                            <CheckBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" Margin="0,2"
+                                     IsChecked="{Binding SearchBlocks, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Enable search functionality within this category. Usually set to true."/>
+
+                            <Label Grid.Row="4" Grid.Column="0" Content="Name:" 
+                                   ToolTip="Internal name for the category, used for positioning and identification."/>
+                            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
+                                     Margin="0,2"
+                                     ToolTip="Internal name for the category, used for positioning and identification."/>
+
+                            <Label Grid.Row="5" Grid.Column="0" Content="Is Tool Category:" 
+                                   ToolTip="Set to true if this category contains tools/weapons rather than blocks."/>
+                            <CheckBox Grid.Row="5" Grid.Column="1" VerticalAlignment="Center" Margin="0,2"
+                                     IsChecked="{Binding IsToolCategory, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Set to true if this category contains tools/weapons rather than blocks."/>
+
+                            <Label Grid.Row="6" Grid.Column="0" Content="Description:" 
+                                   ToolTip="Optional description of this category (not displayed in-game but useful for documentation)."/>
+                            <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" 
+                                     TextWrapping="Wrap" AcceptsReturn="True" Height="60" Margin="0,2"
+                                     ToolTip="Optional description of this category (not displayed in-game but useful for documentation)."/>
+                        </Grid>
+                    </Expander>
+
+                    <!-- Block Items -->
+                    <Expander IsExpanded="True">
+                        <Expander.Header>
+                            <TextBlock Text="Block Items" FontWeight="SemiBold"/>
+                        </Expander.Header>
+                        <Grid Margin="10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="200"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <ToolBar Grid.Row="0" ToolTip="Add blocks to this category. Format: BlockType/SubtypeId (e.g., 'CubeBlock/LargeBlockArmorBlock')">
+                                <Button Command="{Binding DataContext.AddItemIdCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        ToolTip="Add a new block to this category">
+                                    <materialDesign:PackIcon Kind="Plus"/>
+                                </Button>
+                                <Button Command="{Binding DataContext.RemoveItemIdCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        ToolTip="Remove the selected block from this category">
+                                    <materialDesign:PackIcon Kind="Minus"/>
+                                </Button>
+                            </ToolBar>
+
+                            <ListBox Grid.Row="1" Margin="0,5,0,0"
+                                    ItemsSource="{Binding ItemIds}"
+                                    SelectedItem="{Binding DataContext.SelectedItemId, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    ToolTip="List of blocks that will appear in this category. Format: BlockType/SubtypeId">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBox Text="{Binding ., UpdateSourceTrigger=PropertyChanged}" 
+                                                MinWidth="300" Margin="2"/>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <TextBlock Grid.Row="2" Margin="0,10,0,0" TextWrapping="Wrap" 
+                                      FontStyle="Italic" Opacity="0.7">
+                                <Run Text="Block Item Format Examples:"/>
+                                <LineBreak/>
+                                <Run Text="• CubeBlock/LargeBlockArmorBlock - Large armor block"/>
+                                <LineBreak/>
+                                <Run Text="• CubeBlock/SmallBlockArmorBlock - Small armor block"/>
+                                <LineBreak/>
+                                <Run Text="• TerminalBlock/LargeProgrammableBlock - Programmable block"/>
+                                <LineBreak/>
+                                <Run Text="• Use the exact TypeId/SubtypeId from block definitions"/>
+                            </TextBlock>
+                        </Grid>
+                    </Expander>
+
+                    <!-- Preview -->
+                    <Expander>
+                        <Expander.Header>
+                            <TextBlock Text="XML Preview" FontWeight="SemiBold"/>
+                        </Expander.Header>
+                        <Grid Margin="10">
+                            <TextBox IsReadOnly="True" 
+                                    TextWrapping="Wrap" 
+                                    VerticalScrollBarVisibility="Auto"
+                                    Height="200"
+                                    FontFamily="Consolas"
+                                    Background="{StaticResource MaterialDesignTextFieldBoxHoverBackground}"
+                                    Text="XML preview will be generated here based on your category settings..."
+                                    ToolTip="Preview of the XML that will be generated for this block category."/>
+                        </Grid>
+                    </Expander>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

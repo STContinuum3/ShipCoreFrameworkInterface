@@ -1,0 +1,740 @@
+<UserControl x:Class="ShipClassInterface.Views.BlockCreatorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:ShipClassInterface.Views"
+             xmlns:vm="clr-namespace:ShipClassInterface.ViewModels"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d" 
+             d:DesignHeight="800" d:DesignWidth="1200"
+             d:DataContext="{d:DesignInstance Type=vm:BlockCreatorViewModel, IsDesignTimeCreatable=True}">
+    <!-- DataContext is now provided by MainViewModel -->
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar -->
+        <ToolBarTray Grid.Row="0">
+            <ToolBar>
+                <Button Command="{Binding NewFileCommand}" ToolTip="New File">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="FileDocument" Margin="0,0,5,0"/>
+                        <TextBlock Text="New"/>
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding LoadFileCommand}" ToolTip="Load SBC File">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="FolderOpen" Margin="0,0,5,0"/>
+                        <TextBlock Text="Load"/>
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding LoadTemplateCommand}" ToolTip="Load Template">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="FileDocumentOutline" Margin="0,0,5,0"/>
+                        <TextBlock Text="Load Template"/>
+                    </StackPanel>
+                </Button>
+                <Separator/>
+                <Button Command="{Binding ClearAllCommand}" ToolTip="Clear All Loaded Blocks">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="DeleteSweep" Margin="0,0,5,0" Foreground="OrangeRed"/>
+                        <TextBlock Text="Clear All" Foreground="OrangeRed"/>
+                    </StackPanel>
+                </Button>
+                <Separator/>
+                <Button Command="{Binding SaveFileCommand}" ToolTip="Save">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="ContentSave" Margin="0,0,5,0"/>
+                        <TextBlock Text="Save"/>
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding SaveAsFileCommand}" ToolTip="Save As">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="ContentSaveAll" Margin="0,0,5,0"/>
+                        <TextBlock Text="Save As"/>
+                    </StackPanel>
+                </Button>
+                <Separator/>
+                <TextBlock Text="Current File:" VerticalAlignment="Center" Margin="5,0"/>
+                <TextBlock Text="{Binding CurrentFilePath}" VerticalAlignment="Center" FontWeight="Bold"/>
+                <TextBlock Text="(modified)" Visibility="{Binding HasUnsavedChanges, Converter={StaticResource BooleanToVisibilityConverter}}" 
+                          Foreground="Orange" VerticalAlignment="Center" Margin="5,0"/>
+            </ToolBar>
+        </ToolBarTray>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Panel - Block List -->
+            <GroupBox Grid.Column="0" Header="Blocks" Margin="5">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <ToolBar Grid.Row="0">
+                        <Button Command="{Binding AddBlockCommand}" ToolTip="Add Block">
+                            <materialDesign:PackIcon Kind="Plus"/>
+                        </Button>
+                        <Button Command="{Binding RemoveBlockCommand}" ToolTip="Remove Block">
+                            <materialDesign:PackIcon Kind="Minus"/>
+                        </Button>
+                        <Button Command="{Binding DuplicateBlockCommand}" ToolTip="Duplicate Block">
+                            <materialDesign:PackIcon Kind="ContentCopy"/>
+                        </Button>
+                    </ToolBar>
+
+                    <ListBox Grid.Row="1" ItemsSource="{Binding BlockDefinitions.CubeBlocks}" 
+                            SelectedItem="{Binding SelectedBlock}" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Padding="5">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding DisplayName}" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding Id.SubtypeId}" FontSize="11" Opacity="0.7"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </GroupBox>
+
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"/>
+
+            <!-- Right Panel - Block Details -->
+            <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+                <Grid Margin="10" IsEnabled="{Binding SelectedBlock, Converter={StaticResource NullToBooleanConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Margin="0,0,0,10">
+                        <TextBlock Text="{Binding CurrentFileType}" FontSize="18" FontWeight="Bold"/>
+                        <TextBlock Text="Properties" FontSize="14" Opacity="0.7"/>
+                    </StackPanel>
+
+                    <!-- Block Category Properties -->
+                    <local:BlockCategoryCreatorView Grid.Row="1" 
+                                                   Visibility="{Binding IsBlockCategoryMode, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                   DataContext="{Binding}"/>
+
+                    <!-- Standard Block Properties -->
+                    <StackPanel Grid.Row="1" 
+                               DataContext="{Binding SelectedBlock}"
+                               Visibility="{Binding DataContext.IsBlockCategoryMode, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Inverted}">
+                        <!-- Basic Properties -->
+                        <Expander IsExpanded="True">
+                            <Expander.Header>
+                                <TextBlock Text="Basic Information" FontWeight="SemiBold"/>
+                            </Expander.Header>
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <Label Grid.Row="0" Grid.Column="0" Content="Type ID:" 
+                                       ToolTip="Defines the block's fundamental type (e.g., 'TerminalBlock', 'CubeBlock'). This determines the base functionality category."/>
+                                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Id.TypeId, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                         ToolTip="Defines the block's fundamental type (e.g., 'TerminalBlock', 'CubeBlock'). This determines the base functionality category."
+                                         TextChanged="OnTextChanged"/>
+
+                                <Label Grid.Row="1" Grid.Column="0" Content="Subtype ID:" 
+                                       ToolTip="A unique identifier for this specific block variant. Must be unique across all blocks in the game."/>
+                                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Id.SubtypeId, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                         ToolTip="A unique identifier for this specific block variant. Must be unique across all blocks in the game."
+                                         TextChanged="OnTextChanged"/>
+
+                                <Label Grid.Row="2" Grid.Column="0" Content="Display Name:" 
+                                       ToolTip="The name shown in the game interface, block picker, and terminal screens."/>
+                                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                         ToolTip="The name shown in the game interface, block picker, and terminal screens."
+                                         TextChanged="OnTextChanged"/>
+
+                                <Label Grid.Row="3" Grid.Column="0" Content="Description:" 
+                                       ToolTip="Optional text describing the block's function, shown in tooltips and block information."/>
+                                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" 
+                                        TextWrapping="Wrap" AcceptsReturn="True" Height="60" Margin="0,2"
+                                        ToolTip="Optional text describing the block's function, shown in tooltips and block information."
+                                        TextChanged="OnTextChanged"/>
+
+                                <Label Grid.Row="4" Grid.Column="0" Content="Icon:" 
+                                       ToolTip="Path to the DDS texture file used as the block's icon in the block picker (e.g., 'Textures\\Icon.dds')."/>
+                                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Icon, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                         ToolTip="Path to the DDS texture file used as the block's icon in the block picker (e.g., 'Textures\\Icon.dds')."
+                                         TextChanged="OnTextChanged"/>
+
+                                <Label Grid.Row="5" Grid.Column="0" Content="Model:" 
+                                       ToolTip="Path to the MWM model file that defines the block's visual appearance and collision (e.g., 'Models\\Block.mwm')."/>
+                                <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Model, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                         ToolTip="Path to the MWM model file that defines the block's visual appearance and collision (e.g., 'Models\\Block.mwm')."
+                                         TextChanged="OnTextChanged"/>
+
+                                <Label Grid.Row="6" Grid.Column="0" Content="Block Pair Name:" 
+                                       ToolTip="Links small and large grid variants of the same block. Both variants should have the same BlockPairName to enable grid size conversion."/>
+                                <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding BlockPairName, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                         ToolTip="Links small and large grid variants of the same block. Both variants should have the same BlockPairName to enable grid size conversion."
+                                         TextChanged="OnTextChanged"/>
+
+                                <Label Grid.Row="7" Grid.Column="0" Content="Cube Size:" 
+                                       ToolTip="Specifies the grid size this block is designed for: 'Large' for large grids or 'Small' for small grids."/>
+                                <ComboBox Grid.Row="7" Grid.Column="1" Text="{Binding CubeSize}" Margin="0,2"
+                                          ToolTip="Specifies the grid size this block is designed for: 'Large' for large grids or 'Small' for small grids.">
+                                    <ComboBoxItem>Large</ComboBoxItem>
+                                    <ComboBoxItem>Small</ComboBoxItem>
+                                </ComboBox>
+                            </Grid>
+                        </Expander>
+
+                        <!-- Size and Position -->
+                        <Expander>
+                            <Expander.Header>
+                                <TextBlock Text="Size and Position" FontWeight="SemiBold"/>
+                            </Expander.Header>
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <Label Grid.Row="0" Grid.Column="0" Content="Size (X, Y, Z):" 
+                                       ToolTip="Determines the block's dimensions in grid cells. X=width, Y=height, Z=depth. Most blocks are 1x1x1."/>
+                                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" 
+                                           ToolTip="Determines the block's dimensions in grid cells. X=width, Y=height, Z=depth. Most blocks are 1x1x1.">
+                                    <TextBox Text="{Binding Size.X, UpdateSourceTrigger=PropertyChanged}" Width="60" Margin="0,2,5,2"/>
+                                    <TextBox Text="{Binding Size.Y, UpdateSourceTrigger=PropertyChanged}" Width="60" Margin="0,2,5,2"/>
+                                    <TextBox Text="{Binding Size.Z, UpdateSourceTrigger=PropertyChanged}" Width="60" Margin="0,2"/>
+                                </StackPanel>
+
+                                <Label Grid.Row="1" Grid.Column="0" Content="Model Offset (X, Y, Z):" 
+                                       ToolTip="Adjusts the block's visual model position relative to the grid. Use to fine-tune model alignment. Usually 0,0,0."/>
+                                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal"
+                                           ToolTip="Adjusts the block's visual model position relative to the grid. Use to fine-tune model alignment. Usually 0,0,0.">
+                                    <TextBox Text="{Binding ModelOffset.X, UpdateSourceTrigger=PropertyChanged}" Width="60" Margin="0,2,5,2"/>
+                                    <TextBox Text="{Binding ModelOffset.Y, UpdateSourceTrigger=PropertyChanged}" Width="60" Margin="0,2,5,2"/>
+                                    <TextBox Text="{Binding ModelOffset.Z, UpdateSourceTrigger=PropertyChanged}" Width="60" Margin="0,2"/>
+                                </StackPanel>
+
+                                <Label Grid.Row="2" Grid.Column="0" Content="Block Topology:" 
+                                       ToolTip="Defines the block's shape for physics and interaction. 'TriangleMesh' uses the model's exact shape, 'Cube' uses a simple box."/>
+                                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding BlockTopology, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                         ToolTip="Defines the block's shape for physics and interaction. 'TriangleMesh' uses the model's exact shape, 'Cube' uses a simple box."/>
+                            </Grid>
+                        </Expander>
+
+                        <!-- Components -->
+                        <Expander>
+                            <Expander.Header>
+                                <TextBlock Text="Components" FontWeight="SemiBold"/>
+                            </Expander.Header>
+                            <Grid Margin="10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="150"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <ToolBar Grid.Row="0" ToolTip="Components define the materials required to build this block. Add different component types and quantities.">
+                                    <Button Command="{Binding DataContext.AddComponentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                           ToolTip="Add a new component requirement to this block">
+                                        <materialDesign:PackIcon Kind="Plus"/>
+                                    </Button>
+                                    <Button Command="{Binding DataContext.RemoveComponentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                           ToolTip="Remove the selected component requirement">
+                                        <materialDesign:PackIcon Kind="Minus"/>
+                                    </Button>
+                                </ToolBar>
+
+                                <DataGrid Grid.Row="1" ItemsSource="{Binding Components}" 
+                                         SelectedItem="{Binding DataContext.SelectedComponent, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                         AutoGenerateColumns="False" CanUserAddRows="False"
+                                         ToolTip="List of components required to build this block. Each component has a type (Subtype) and quantity (Count).">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Subtype" Binding="{Binding Subtype}" Width="*"/>
+                                        <DataGridTextColumn Header="Count" Binding="{Binding Count}" Width="80"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+
+                                <Grid Grid.Row="2" Margin="0,5,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <Label Grid.Row="0" Grid.Column="0" Content="Critical Component:" 
+                                           ToolTip="The component type that makes the block functional when installed. Usually matches one of the components above."/>
+                                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding CriticalComponent.Subtype, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                             ToolTip="The component type that makes the block functional when installed. Usually matches one of the components above."/>
+
+                                    <Label Grid.Row="1" Grid.Column="0" Content="Critical Index:" 
+                                           ToolTip="The zero-based index of the critical component in the components list. Block becomes functional at this build stage."/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding CriticalComponent.Index, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                             ToolTip="The zero-based index of the critical component in the components list. Block becomes functional at this build stage."/>
+                                </Grid>
+                            </Grid>
+                        </Expander>
+
+                        <!-- Mount Points -->
+                        <Expander>
+                            <Expander.Header>
+                                <TextBlock Text="Mount Points" FontWeight="SemiBold"/>
+                            </Expander.Header>
+                            <Grid Margin="10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="150"/>
+                                </Grid.RowDefinitions>
+
+                                <ToolBar Grid.Row="0">
+                                    <Button Command="{Binding DataContext.AddMountPointCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                           ToolTip="Add Mount Point">
+                                        <materialDesign:PackIcon Kind="Plus"/>
+                                    </Button>
+                                    <Button Command="{Binding DataContext.RemoveMountPointCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                           ToolTip="Remove Mount Point">
+                                        <materialDesign:PackIcon Kind="Minus"/>
+                                    </Button>
+                                </ToolBar>
+
+                                <DataGrid Grid.Row="1" ItemsSource="{Binding MountPoints}" 
+                                         SelectedItem="{Binding DataContext.SelectedMountPoint, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                         AutoGenerateColumns="False" CanUserAddRows="False">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Side" Binding="{Binding Side}" Width="80"/>
+                                        <DataGridTextColumn Header="StartX" Binding="{Binding StartX}" Width="70"/>
+                                        <DataGridTextColumn Header="StartY" Binding="{Binding StartY}" Width="70"/>
+                                        <DataGridTextColumn Header="EndX" Binding="{Binding EndX}" Width="70"/>
+                                        <DataGridTextColumn Header="EndY" Binding="{Binding EndY}" Width="70"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Expander>
+
+                        <!-- Build Progress Models -->
+                        <Expander>
+                            <Expander.Header>
+                                <TextBlock Text="Build Progress Models" FontWeight="SemiBold"/>
+                            </Expander.Header>
+                            <Grid Margin="10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="120"/>
+                                </Grid.RowDefinitions>
+
+                                <ToolBar Grid.Row="0">
+                                    <Button Command="{Binding DataContext.AddBuildProgressModelCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                           ToolTip="Add Build Progress Model">
+                                        <materialDesign:PackIcon Kind="Plus"/>
+                                    </Button>
+                                    <Button Command="{Binding DataContext.RemoveBuildProgressModelCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                           ToolTip="Remove Build Progress Model">
+                                        <materialDesign:PackIcon Kind="Minus"/>
+                                    </Button>
+                                </ToolBar>
+
+                                <DataGrid Grid.Row="1" ItemsSource="{Binding BuildProgressModels}" 
+                                         SelectedItem="{Binding DataContext.SelectedBuildProgressModel, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                         AutoGenerateColumns="False" CanUserAddRows="False">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Build %" Binding="{Binding BuildPercentUpperBound}" Width="80"/>
+                                        <DataGridTextColumn Header="File" Binding="{Binding File}" Width="*"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Expander>
+
+                        <!-- Screen Areas -->
+                        <Expander>
+                            <Expander.Header>
+                                <TextBlock Text="Screen Areas" FontWeight="SemiBold"/>
+                            </Expander.Header>
+                            <Grid Margin="10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="120"/>
+                                </Grid.RowDefinitions>
+
+                                <ToolBar Grid.Row="0">
+                                    <Button Command="{Binding DataContext.AddScreenAreaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                           ToolTip="Add Screen Area">
+                                        <materialDesign:PackIcon Kind="Plus"/>
+                                    </Button>
+                                    <Button Command="{Binding DataContext.RemoveScreenAreaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                           ToolTip="Remove Screen Area">
+                                        <materialDesign:PackIcon Kind="Minus"/>
+                                    </Button>
+                                </ToolBar>
+
+                                <DataGrid Grid.Row="1" ItemsSource="{Binding ScreenAreas}" 
+                                         SelectedItem="{Binding DataContext.SelectedScreenArea, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                         AutoGenerateColumns="False" CanUserAddRows="False">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="120"/>
+                                        <DataGridTextColumn Header="Display" Binding="{Binding DisplayName}" Width="100"/>
+                                        <DataGridTextColumn Header="Resolution" Binding="{Binding TextureResolution}" Width="80"/>
+                                        <DataGridTextColumn Header="Width" Binding="{Binding ScreenWidth}" Width="60"/>
+                                        <DataGridTextColumn Header="Height" Binding="{Binding ScreenHeight}" Width="60"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Expander>
+
+                        <!-- Mirroring -->
+                        <Expander>
+                            <Expander.Header>
+                                <TextBlock Text="Mirroring" FontWeight="SemiBold"/>
+                            </Expander.Header>
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <Label Grid.Row="0" Grid.Column="0" Content="Mirroring X:" 
+                                       ToolTip="Defines how the block behaves when mirrored along the X-axis. Common values: 'MinusHalfY', 'HalfY', 'None'."/>
+                                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding MirroringX, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                         ToolTip="Defines how the block behaves when mirrored along the X-axis. Common values: 'MinusHalfY', 'HalfY', 'None'."/>
+
+                                <Label Grid.Row="1" Grid.Column="0" Content="Mirroring Y:" 
+                                       ToolTip="Defines how the block behaves when mirrored along the Y-axis. Common values: 'ZHalfY', 'MinusZHalfY', 'None'."/>
+                                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding MirroringY, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                         ToolTip="Defines how the block behaves when mirrored along the Y-axis. Common values: 'ZHalfY', 'MinusZHalfY', 'None'."/>
+
+                                <Label Grid.Row="2" Grid.Column="0" Content="Mirroring Z:" 
+                                       ToolTip="Defines how the block behaves when mirrored along the Z-axis. Common values: 'HalfY', 'MinusHalfY', 'None'."/>
+                                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding MirroringZ, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                         ToolTip="Defines how the block behaves when mirrored along the Z-axis. Common values: 'HalfY', 'MinusHalfY', 'None'."/>
+                            </Grid>
+                        </Expander>
+
+                        <!-- Effects and Sounds -->
+                        <Expander>
+                            <Expander.Header>
+                                <TextBlock Text="Effects and Sounds" FontWeight="SemiBold"/>
+                            </Expander.Header>
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <Label Grid.Row="0" Grid.Column="0" Content="Edge Type:"/>
+                                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding EdgeType, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"/>
+
+                                <Label Grid.Row="1" Grid.Column="0" Content="Build Time (sec):"/>
+                                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding BuildTimeSeconds, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"/>
+
+                                <Label Grid.Row="2" Grid.Column="0" Content="Damage Effect:"/>
+                                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding DamageEffectName, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"/>
+
+                                <Label Grid.Row="3" Grid.Column="0" Content="Damaged Sound:"/>
+                                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding DamagedSound, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"/>
+
+                                <Label Grid.Row="4" Grid.Column="0" Content="Primary Sound:"/>
+                                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding PrimarySound, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"/>
+
+                                <Label Grid.Row="5" Grid.Column="0" Content="Action Sound:"/>
+                                <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding ActionSound, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"/>
+
+                                <Label Grid.Row="6" Grid.Column="0" Content="Destroy Effect:"/>
+                                <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding DestroyEffect, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"/>
+
+                                <Label Grid.Row="7" Grid.Column="0" Content="Destroy Sound:"/>
+                                <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding DestroySound, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"/>
+                            </Grid>
+                        </Expander>
+
+                        <!-- Performance -->
+                        <Expander>
+                            <Expander.Header>
+                                <TextBlock Text="Performance" FontWeight="SemiBold"/>
+                            </Expander.Header>
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <Label Grid.Row="0" Grid.Column="0" Content="Emissive Color:" 
+                                       ToolTip="Defines the block's emissive color states and behavior. Common values: 'Default', 'Working', 'Disabled'."/>
+                                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding EmissiveColorPreset, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                         ToolTip="Defines the block's emissive color states and behavior. Common values: 'Default', 'Working', 'Disabled'."/>
+
+                                <Label Grid.Row="1" Grid.Column="0" Content="PCU:" 
+                                       ToolTip="Performance Cost Unit - impacts server performance limits. Higher values = more performance cost."/>
+                                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding PCU, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                         ToolTip="Performance Cost Unit - impacts server performance limits. Higher values = more performance cost."/>
+
+                                <Label Grid.Row="2" Grid.Column="0" Content="Tiered Update Times:" 
+                                       ToolTip="Controls block update frequency based on player proximity. Lower values = more frequent updates but higher performance cost."/>
+                                <StackPanel Grid.Row="2" Grid.Column="1">
+                                    <ToolBar>
+                                        <Button Command="{Binding DataContext.AddTieredUpdateTimeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                               ToolTip="Add Update Time">
+                                            <materialDesign:PackIcon Kind="Plus"/>
+                                        </Button>
+                                    </ToolBar>
+                                    <ItemsControl ItemsSource="{Binding TieredUpdateTimes}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" Margin="0,2">
+                                                    <TextBox Text="{Binding .}" Width="100" IsReadOnly="True"/>
+                                                    <Button Command="{Binding DataContext.RemoveTieredUpdateTimeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                           CommandParameter="{Binding .}" Margin="5,0,0,0" Padding="2">
+                                                        <materialDesign:PackIcon Kind="Close" Width="16" Height="16"/>
+                                                    </Button>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Grid>
+                        </Expander>
+
+                        <!-- Advanced Properties -->
+                        <Expander>
+                            <Expander.Header>
+                                <TextBlock Text="Advanced Properties" FontWeight="SemiBold"/>
+                            </Expander.Header>
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <Label Grid.Row="0" Grid.Column="0" Content="Is Air Tight:" 
+                                       ToolTip="Determines if this block prevents air from passing through. Essential for pressurization in survival mode."/>
+                                <CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding IsAirTight}" VerticalAlignment="Center" Margin="0,2"
+                                          ToolTip="Determines if this block prevents air from passing through. Essential for pressurization in survival mode."/>
+
+                                <Label Grid.Row="1" Grid.Column="0" Content="GUI Visible:" 
+                                       ToolTip="Controls if the block appears in the block picker GUI. Set to false to hide blocks from players."/>
+                                <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding GuiVisible}" VerticalAlignment="Center" Margin="0,2"
+                                          ToolTip="Controls if the block appears in the block picker GUI. Set to false to hide blocks from players."/>
+
+                                <Label Grid.Row="2" Grid.Column="0" Content="Visible in Survival:" 
+                                       ToolTip="Determines if the block is visible in the block picker while in survival mode."/>
+                                <CheckBox Grid.Row="2" Grid.Column="1" IsChecked="{Binding VisibleInSurvival}" VerticalAlignment="Center" Margin="0,2"
+                                          ToolTip="Determines if the block is visible in the block picker while in survival mode."/>
+
+                                <Label Grid.Row="3" Grid.Column="0" Content="Available in Survival:" 
+                                       ToolTip="Controls whether the block can be built/used in survival mode. Creative-only blocks should set this to false."/>
+                                <CheckBox Grid.Row="3" Grid.Column="1" IsChecked="{Binding AvailableInSurvival}" VerticalAlignment="Center" Margin="0,2"
+                                          ToolTip="Controls whether the block can be built/used in survival mode. Creative-only blocks should set this to false."/>
+
+                                <Label Grid.Row="4" Grid.Column="0" Content="Public:" 
+                                       ToolTip="Determines general block visibility and accessibility. Most blocks should have this enabled."/>
+                                <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding Public}" VerticalAlignment="Center" Margin="0,2"
+                                          ToolTip="Determines general block visibility and accessibility. Most blocks should have this enabled."/>
+
+                                <Label Grid.Row="5" Grid.Column="0" Content="Physical Material:" 
+                                       ToolTip="Defines the material properties for physics interactions, damage, and sound effects (e.g., 'Metal', 'Rock')."/>
+                                <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding PhysicalMaterial, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                         ToolTip="Defines the material properties for physics interactions, damage, and sound effects (e.g., 'Metal', 'Rock')."/>
+
+                                <Label Grid.Row="6" Grid.Column="0" Content="Build Type:" 
+                                       ToolTip="Specifies how the block is constructed. Usually left empty for standard building mechanics."/>
+                                <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding BuildType, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                         ToolTip="Specifies how the block is constructed. Usually left empty for standard building mechanics."/>
+
+                                <Label Grid.Row="7" Grid.Column="0" Content="Build Material:" 
+                                       ToolTip="Defines the material used during construction. Usually left empty for standard blocks."/>
+                                <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding BuildMaterial, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                         ToolTip="Defines the material used during construction. Usually left empty for standard blocks."/>
+
+                                <Label Grid.Row="8" Grid.Column="0" Content="Damage Multiplier:" 
+                                       ToolTip="Multiplier for damage resistance. 1.0 = normal damage, higher values = more resistant, lower = more fragile."/>
+                                <TextBox Grid.Row="8" Grid.Column="1" Text="{Binding GeneralDamageMultiplier, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                         ToolTip="Multiplier for damage resistance. 1.0 = normal damage, higher values = more resistant, lower = more fragile."/>
+
+                                <Label Grid.Row="9" Grid.Column="0" Content="Damage Threshold:" 
+                                       ToolTip="Minimum damage required to actually damage this block. Low values like 1-10 are typical."/>
+                                <TextBox Grid.Row="9" Grid.Column="1" Text="{Binding DamageThreshold, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                         ToolTip="Minimum damage required to actually damage this block. Low values like 1-10 are typical."/>
+
+                                <Label Grid.Row="10" Grid.Column="0" Content="Uses Deformation:" 
+                                       ToolTip="Enables visual deformation when the block is damaged. Requires appropriate model setup."/>
+                                <CheckBox Grid.Row="10" Grid.Column="1" IsChecked="{Binding UsesDeformation}" VerticalAlignment="Center" Margin="0,2"
+                                          ToolTip="Enables visual deformation when the block is damaged. Requires appropriate model setup."/>
+
+                                <Label Grid.Row="11" Grid.Column="0" Content="Deformation Ratio:" 
+                                       ToolTip="Controls how much the block visually deforms when damaged. Values from 0.0 to 1.0, where 1.0 is full deformation."/>
+                                <TextBox Grid.Row="11" Grid.Column="1" Text="{Binding DeformationRatio, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                         ToolTip="Controls how much the block visually deforms when damaged. Values from 0.0 to 1.0, where 1.0 is full deformation."/>
+
+                                <Label Grid.Row="12" Grid.Column="0" Content="Use Neighbour O2:" 
+                                       ToolTip="Allows the block to use oxygen from neighboring rooms instead of just its own. Used for specialized air system blocks."/>
+                                <CheckBox Grid.Row="12" Grid.Column="1" IsChecked="{Binding UseNeighbourOxygenRooms}" VerticalAlignment="Center" Margin="0,2"
+                                          ToolTip="Allows the block to use oxygen from neighboring rooms instead of just its own. Used for specialized air system blocks."/>
+
+                                <Label Grid.Row="13" Grid.Column="0" Content="Points:" 
+                                       ToolTip="Score value for competitive modes or achievements. Usually correlates with block complexity or value."/>
+                                <TextBox Grid.Row="13" Grid.Column="1" Text="{Binding Points, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                         ToolTip="Score value for competitive modes or achievements. Usually correlates with block complexity or value."/>
+
+                                <Label Grid.Row="14" Grid.Column="0" Content="Random Rotation:" 
+                                       ToolTip="Allows the block to be placed in random orientations. Useful for decorative blocks to add variety."/>
+                                <CheckBox Grid.Row="14" Grid.Column="1" IsChecked="{Binding RandomRotation}" VerticalAlignment="Center" Margin="0,2"
+                                          ToolTip="Allows the block to be placed in random orientations. Useful for decorative blocks to add variety."/>
+
+                                <Label Grid.Row="15" Grid.Column="0" Content="Shadow Casting:" 
+                                       ToolTip="Controls how the block casts shadows. Options: 'On', 'Off', 'ShadowsOnly', 'TwoSided'."/>
+                                <TextBox Grid.Row="15" Grid.Column="1" Text="{Binding ShadowCastingMode, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                         ToolTip="Controls how the block casts shadows. Options: 'On', 'Off', 'ShadowsOnly', 'TwoSided'."/>
+
+                                <Label Grid.Row="16" Grid.Column="0" Content="Block Variants:" 
+                                       ToolTip="Links to other blocks that are variants of this one. Used for blocks with multiple visual styles or sizes."/>
+                                <TextBox Grid.Row="16" Grid.Column="1" Text="{Binding BlockVariants, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                         ToolTip="Links to other blocks that are variants of this one. Used for blocks with multiple visual styles or sizes."/>
+
+                                <Label Grid.Row="17" Grid.Column="0" Content="Mirroring Block:" 
+                                       ToolTip="Specifies an alternate block to use when this block is mirrored. Useful for asymmetric blocks."/>
+                                <TextBox Grid.Row="17" Grid.Column="1" Text="{Binding MirroringBlock, UpdateSourceTrigger=PropertyChanged}" Margin="0,2"
+                                         ToolTip="Specifies an alternate block to use when this block is mirrored. Useful for asymmetric blocks."/>
+                            </Grid>
+                        </Expander>
+
+                        <!-- Upgrade Module Properties -->
+                        <Expander>
+                            <Expander.Header>
+                                <TextBlock Text="Upgrade Module Properties" FontWeight="SemiBold"/>
+                            </Expander.Header>
+                            <Grid Margin="10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="150"/>
+                                </Grid.RowDefinitions>
+
+                                <ToolBar Grid.Row="0" ToolTip="Upgrade modules modify the performance of nearby blocks. Define the upgrade type, modifier value, and how it applies.">
+                                    <Button Command="{Binding DataContext.AddUpgradeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                           ToolTip="Add a new upgrade effect">
+                                        <materialDesign:PackIcon Kind="Plus"/>
+                                    </Button>
+                                    <Button Command="{Binding DataContext.RemoveUpgradeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                           ToolTip="Remove the selected upgrade effect">
+                                        <materialDesign:PackIcon Kind="Minus"/>
+                                    </Button>
+                                </ToolBar>
+
+                                <DataGrid Grid.Row="1" ItemsSource="{Binding Upgrades}" 
+                                         SelectedItem="{Binding DataContext.SelectedUpgrade, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                         AutoGenerateColumns="False" CanUserAddRows="False"
+                                         ToolTip="List of upgrade effects this module provides. Common types: Productivity, PowerEfficiency, Speed, Effectiveness.">
+                                    <DataGrid.Columns>
+                                        <DataGridComboBoxColumn Header="Upgrade Type" 
+                                                              SelectedValueBinding="{Binding UpgradeType}" 
+                                                              Width="120">
+                                            <DataGridComboBoxColumn.ElementStyle>
+                                                <Style TargetType="ComboBox">
+                                                    <Setter Property="ItemsSource">
+                                                        <Setter.Value>
+                                                            <x:Array Type="sys:String" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+                                                                <sys:String>Productivity</sys:String>
+                                                                <sys:String>PowerEfficiency</sys:String>
+                                                                <sys:String>Speed</sys:String>
+                                                                <sys:String>Effectiveness</sys:String>
+                                                                <sys:String>ResourceSinkGroup</sys:String>
+                                                            </x:Array>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </DataGridComboBoxColumn.ElementStyle>
+                                        </DataGridComboBoxColumn>
+                                        <DataGridTextColumn Header="Modifier" Binding="{Binding Modifier}" Width="80"/>
+                                        <DataGridComboBoxColumn Header="Modifier Type" 
+                                                              SelectedValueBinding="{Binding ModifierType}" 
+                                                              Width="100">
+                                            <DataGridComboBoxColumn.ElementStyle>
+                                                <Style TargetType="ComboBox">
+                                                    <Setter Property="ItemsSource">
+                                                        <Setter.Value>
+                                                            <x:Array Type="sys:String" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+                                                                <sys:String>Additive</sys:String>
+                                                                <sys:String>Multiplicative</sys:String>
+                                                            </x:Array>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </DataGridComboBoxColumn.ElementStyle>
+                                        </DataGridComboBoxColumn>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Expander>
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>

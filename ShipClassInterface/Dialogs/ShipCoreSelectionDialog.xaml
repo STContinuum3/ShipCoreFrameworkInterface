@@ -1,0 +1,155 @@
+﻿<UserControl x:Class="ShipClassInterface.Dialogs.ShipCoreSelectionDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d" 
+             d:DesignHeight="500" d:DesignWidth="600">
+    
+    <materialDesign:Card Width="600" MaxHeight="500">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            
+            <!-- Header -->
+            <materialDesign:ColorZone Grid.Row="0" Mode="PrimaryMid" Padding="16">
+                <TextBlock Text="Select Ship Core" FontSize="20" FontWeight="Medium"/>
+            </materialDesign:ColorZone>
+            
+            <!-- Ship Core List -->
+            <Grid Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <!-- Info Message -->
+                <materialDesign:Card Grid.Row="0" Margin="16,16,16,8" Padding="12"
+                                     Background="{DynamicResource MaterialDesignToolBarBackground}">
+                    <TextBlock TextWrapping="Wrap">
+                        <Run Text="Select a ship core from previously loaded configurations or create a new one."/>
+                        <LineBreak/>
+                        <Run Text="Available cores: " FontWeight="Bold"/>
+                        <Run Text="{Binding AvailableShipCores.Count, Mode=OneWay}" FontWeight="Bold"/>
+                    </TextBlock>
+                </materialDesign:Card>
+                
+                <!-- List -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="16,8,16,16">
+                    <ItemsControl ItemsSource="{Binding AvailableShipCores}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <materialDesign:Card Margin="0,4" 
+                                                     Cursor="Hand"
+                                                     materialDesign:ElevationAssist.Elevation="Dp2">
+                                    <materialDesign:Card.InputBindings>
+                                        <MouseBinding MouseAction="LeftClick" 
+                                                      Command="{Binding DataContext.SelectShipCoreCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                      CommandParameter="{Binding}"/>
+                                    </materialDesign:Card.InputBindings>
+                                    
+                                    <materialDesign:Card.Style>
+                                        <Style TargetType="materialDesign:Card">
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="materialDesign:ElevationAssist.Elevation" Value="Dp4"/>
+                                                    <Setter Property="Background" Value="{DynamicResource MaterialDesignSelection}"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </materialDesign:Card.Style>
+                                    
+                                    <Grid Margin="16,12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <!-- Icon -->
+                                        <materialDesign:PackIcon Grid.Column="0" 
+                                                                 Kind="Rocket" 
+                                                                 Width="32" 
+                                                                 Height="32"
+                                                                 VerticalAlignment="Center"
+                                                                 Margin="0,0,16,0"/>
+                                        
+                                        <!-- Core Info -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding UniqueName}" 
+                                                       FontSize="16" 
+                                                       FontWeight="Medium"/>
+                                            <TextBlock Opacity="0.7" Margin="0,2,0,0">
+                                                <Run Text="Subtype ID: "/>
+                                                <Run Text="{Binding SubtypeId, Mode=OneWay}" FontFamily="Consolas"/>
+                                            </TextBlock>
+                                            <TextBlock Opacity="0.7" FontSize="12">
+                                                <Run Text="Max Blocks: "/>
+                                                <Run Text="{Binding MaxBlocks, Mode=OneWay}"/>
+                                                <Run Text=" | Grids: "/>
+                                                <Run Text="{Binding LargeGridStatic, Mode=OneWay, Converter={StaticResource BoolToGridTypeConverter}, ConverterParameter=LS}"/>
+                                                <Run Text="{Binding LargeGridMobile, Mode=OneWay, Converter={StaticResource BoolToGridTypeConverter}, ConverterParameter=LM}"/>
+                                                <Run Text="{Binding SmallGrid, Mode=OneWay, Converter={StaticResource BoolToGridTypeConverter}, ConverterParameter=S}"/>
+                                            </TextBlock>
+                                        </StackPanel>
+                                        
+                                        <!-- Select Button -->
+                                        <Button Grid.Column="2" 
+                                                Style="{StaticResource MaterialDesignRaisedButton}"
+                                                materialDesign:ButtonAssist.CornerRadius="20"
+                                                Command="{Binding DataContext.SelectShipCoreCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"
+                                                Content="SELECT"
+                                                Margin="8,0,0,0"/>
+                                    </Grid>
+                                </materialDesign:Card>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+                
+                <!-- Empty State -->
+                <Grid Grid.Row="1" Visibility="{Binding HasNoShipCores, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <materialDesign:PackIcon Kind="RocketLaunchOutline" 
+                                                 Width="64" 
+                                                 Height="64" 
+                                                 HorizontalAlignment="Center" 
+                                                 Opacity="0.3"/>
+                        <TextBlock Text="No ship cores loaded yet" 
+                                   FontSize="16" 
+                                   Opacity="0.5" 
+                                   Margin="0,16,0,8"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Load ship core configurations in the Ship Cores tab first" 
+                                   FontSize="12" 
+                                   Opacity="0.5"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+            
+            <!-- Actions -->
+            <Border Grid.Row="2" 
+                    BorderThickness="0,1,0,0" 
+                    BorderBrush="{DynamicResource MaterialDesignDivider}"
+                    Background="{DynamicResource MaterialDesignCardBackground}">
+                <StackPanel Orientation="Horizontal" 
+                            HorizontalAlignment="Right" 
+                            Margin="16">
+                    <Button Style="{StaticResource MaterialDesignFlatButton}"
+                            Command="{Binding CreateNewCommand}"
+                            Content="CREATE NEW"
+                            Margin="0,0,8,0"/>
+                    <Button Style="{StaticResource MaterialDesignFlatButton}"
+                            Command="{Binding CancelCommand}"
+                            Content="CANCEL"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </materialDesign:Card>
+</UserControl>
