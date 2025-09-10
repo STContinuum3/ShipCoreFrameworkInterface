@@ -182,7 +182,6 @@
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
                                     
                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Max Blocks:" VerticalAlignment="Center"/>
@@ -210,13 +209,8 @@
                                              materialDesign:HintAssist.Hint="-1 for unlimited"
                                              ToolTip="Maximum number of grids of this ship class that each player can have. Set to -1 for no limit."/>
                                     
-                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Min Blocks:" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding MinBlocks, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"
-                                             materialDesign:HintAssist.Hint="-1 for no minimum"
-                                             ToolTip="Minimum number of blocks required for grids to use this ship class. Set to -1 for no minimum."/>
-                                    
-                                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Min Players:" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding MinPlayers, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Min Players:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding MinPlayers, UpdateSourceTrigger=PropertyChanged}" Margin="8,4"
                                              materialDesign:HintAssist.Hint="-1 for no minimum"
                                              ToolTip="Minimum number of players required in the faction to use this ship class. Set to -1 for no minimum."/>
                                 </Grid>
@@ -486,20 +480,30 @@
                                                     </Style>
                                                 </DataGridTextColumn.ElementStyle>
                                             </DataGridTextColumn>
-                                            <DataGridTemplateColumn Header="Block Groups" Width="250">
+                                            <DataGridTemplateColumn Header="Block Groups" Width="350">
                                                 <DataGridTemplateColumn.CellTemplate>
                                                     <DataTemplate>
-                                                        <TextBlock Text="{Binding BlockGroups}" />
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0" 
+                                                                       Text="{Binding BlockGroupsText}" 
+                                                                       TextWrapping="Wrap"
+                                                                       VerticalAlignment="Center"
+                                                                       Margin="4,0"
+                                                                       ToolTip="{Binding BlockGroupsText}"/>
+                                                            <Button Grid.Column="1" 
+                                                                    Content="Edit"
+                                                                    Style="{StaticResource MaterialDesignFlatButton}"
+                                                                    Command="{Binding DataContext.EditBlockGroupsCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Padding="8,4"
+                                                                    Margin="2"/>
+                                                        </Grid>
                                                     </DataTemplate>
                                                 </DataGridTemplateColumn.CellTemplate>
-                                                <DataGridTemplateColumn.CellEditingTemplate>
-                                                    <DataTemplate>
-                                                        <ComboBox Text="{Binding BlockGroups, UpdateSourceTrigger=PropertyChanged}"
-                                                                  ItemsSource="{Binding DataContext.AvailableBlockGroups, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                  IsEditable="True"
-                                                                  ToolTip="Select or enter the name of the block group to apply this limit to. Block groups are defined in your Block Groups configuration."/>
-                                                    </DataTemplate>
-                                                </DataGridTemplateColumn.CellEditingTemplate>
                                             </DataGridTemplateColumn>
                                             <DataGridTextColumn Header="Max Count" Binding="{Binding MaxCount}" Width="100">
                                                 <DataGridTextColumn.ElementStyle>

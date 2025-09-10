@@ -168,7 +168,7 @@ namespace ShipClassInterface.Services
                 foreach (var blockLimit in shipCore.BlockLimits)
                 {
                     worksheet.Cells[row, 1].Value = blockLimit.Name;
-                    worksheet.Cells[row, 2].Value = blockLimit.BlockGroups;
+                    worksheet.Cells[row, 2].Value = blockLimit.BlockGroupsText;
                     worksheet.Cells[row, 3].Value = blockLimit.MaxCount;
                     worksheet.Cells[row, 4].Value = blockLimit.TurnedOffByNoFlyZone ? "Yes" : "No";
                     worksheet.Cells[row, 5].Value = blockLimit.PunishmentType.ToString();

@@ -366,7 +366,6 @@ namespace ShipClassInterface.ViewModels
                 SelectedShipCore.BlockLimits.Add(new BlockLimit
                 {
                     Name = "New Limit",
-                    BlockGroups = "",
                     MaxCount = 1
                 });
             }
@@ -553,26 +552,70 @@ namespace ShipClassInterface.ViewModels
                 return (true, string.Empty);
             }
 
-            // Group block limits by their BlockGroups property to find duplicates
-            var blockGroupCounts = shipCore.BlockLimits
-                .Where(bl => !string.IsNullOrWhiteSpace(bl.BlockGroups))
-                .GroupBy(bl => bl.BlockGroups, StringComparer.OrdinalIgnoreCase)
+            // Collect all block groups from all block limits and find duplicates across different limits
+            var allBlockGroups = new List<(string BlockGroup, string LimitName)>();
+            
+            foreach (var blockLimit in shipCore.BlockLimits)
+            {
+                if (blockLimit.BlockGroups != null)
+                {
+                    foreach (var blockGroup in blockLimit.BlockGroups)
+                    {
+                        if (!string.IsNullOrWhiteSpace(blockGroup))
+                        {
+                            allBlockGroups.Add((blockGroup.Trim(), blockLimit.Name));
+                        }
+                    }
+                }
+            }
+
+            // Group by block group name to find duplicates across different limits
+            var duplicateGroups = allBlockGroups
+                .GroupBy(bg => bg.BlockGroup, StringComparer.OrdinalIgnoreCase)
                 .Where(g => g.Count() > 1)
-                .Select(g => new { BlockGroup = g.Key, Count = g.Count() })
+                .Select(g => new { 
+                    BlockGroup = g.Key, 
+                    Count = g.Count(),
+                    LimitNames = g.Select(x => x.LimitName).Distinct().ToList()
+                })
                 .ToList();
 
-            if (blockGroupCounts.Any())
+            if (duplicateGroups.Any())
             {
-                var duplicateDetails = blockGroupCounts
-                    .Select(item => $"{item.BlockGroup} ({item.Count} times)")
+                var duplicateDetails = duplicateGroups
+                    .Select(item => $"{item.BlockGroup} (in limits: {string.Join(", ", item.LimitNames)})")
                     .ToList();
 
-                var message = $"The following block groups appear multiple times in the ship core configuration:\\n\\n{string.Join("\\n", duplicateDetails)}\\n\\nEach block group can only be referenced once per ship core.";
+                var message = $"The following block groups appear in multiple block limits:\\n\\n{string.Join("\\n", duplicateDetails)}\\n\\nEach block group can only be referenced once across all block limits in a ship core.";
                 
                 return (false, message);
             }
 
             return (true, string.Empty);
+        }
+
+        [RelayCommand]
+        private void EditBlockGroups(BlockLimit? blockLimit)
+        {
+            if (blockLimit == null) return;
+
+            var dialog = new BlockGroupSelectionDialog(AvailableBlockGroups, blockLimit.BlockGroups)
+            {
+                Owner = Application.Current.MainWindow
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                // Update the block groups with the dialog result
+                blockLimit.BlockGroups.Clear();
+                foreach (var group in dialog.SelectedBlockGroups)
+                {
+                    blockLimit.BlockGroups.Add(group);
+                }
+                
+                // Notify property changed for UI update
+                blockLimit.OnPropertyChanged(nameof(BlockLimit.BlockGroupsText));
+            }
         }
 
     }

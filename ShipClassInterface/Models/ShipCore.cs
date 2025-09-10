@@ -138,6 +138,7 @@ namespace ShipClassInterface.Models
             } 
         }
         
+        [XmlIgnore]
         public int MinBlocks 
         { 
             get => _minBlocks; 
@@ -147,6 +148,17 @@ namespace ShipClassInterface.Models
                 OnPropertyChanged(); 
             } 
         }
+        
+        // Backwards compatibility: used only for reading old XML files
+        [XmlElement("MinBlocks")]
+        public int MinBlocksForXml
+        {
+            get => -1; // Always return -1 when serializing (won't be included due to ShouldSerialize method)
+            set => _minBlocks = value; // Set the value when deserializing old files
+        }
+        
+        // Prevent serialization of MinBlocksForXml
+        public bool ShouldSerializeMinBlocksForXml() => false;
         
         public int MinPlayers 
         { 
@@ -212,7 +224,7 @@ namespace ShipClassInterface.Models
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        public virtual void OnPropertyChanged([CallerMemberName] string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
@@ -262,10 +274,36 @@ namespace ShipClassInterface.Models
     public class BlockLimit : INotifyPropertyChanged
     {
         public string Name { get; set; } = string.Empty;
-        public string BlockGroups { get; set; } = string.Empty;
+        
+        [XmlElement("BlockGroups")]
+        public ObservableCollection<string> BlockGroups { get; set; } = new();
+        
         public float MaxCount { get; set; } = 1;
         public bool TurnedOffByNoFlyZone { get; set; }
         public PunishmentType PunishmentType { get; set; } = PunishmentType.ShutOff;
+        
+        // UI convenience property for display and editing
+        [XmlIgnore]
+        public string BlockGroupsText
+        {
+            get => string.Join(", ", BlockGroups);
+            set
+            {
+                BlockGroups.Clear();
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    var groups = value.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                      .Select(g => g.Trim())
+                                      .Where(g => !string.IsNullOrEmpty(g));
+                    foreach (var group in groups)
+                    {
+                        BlockGroups.Add(group);
+                    }
+                }
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(BlockGroups));
+            }
+        }
         
         [XmlElement("AllowedDirections")]
         public ObservableCollection<string> AllowedDirections { get; set; } = new();
@@ -389,7 +427,7 @@ namespace ShipClassInterface.Models
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        public virtual void OnPropertyChanged([CallerMemberName] string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
